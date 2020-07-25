@@ -1,8 +1,24 @@
 server:
-  port: 8080
   servlet:
     context-path: /birra-meet
 spring:
   cache:
     redis:
       time-to-live: 3600000
+birra-meet:
+  jjwt:
+    secret: ksJiIl![s*bkPZ$r:ZyLv!Xp(8M~4C$_ck"w6sNRb'4WYB"K#Y2aM<Qr-ogl1/p
+    expiration: 28800
+  provision-strategy:
+    birras-por-caja: 6
+    condiciones:
+      -
+        hasta: 19
+        birras: 0.75
+      -
+        desde: 20
+        hasta: 24
+        birras: 1
+      -
+        desde: 25
+        birras: 2
