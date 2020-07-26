@@ -22,3 +22,15 @@ birra-meet:
       -
         desde: 25
         birras: 2
+clients:
+  open-weather:
+    api-key: "apikey-123"
+logging:
+  level:
+    org:
+      springframework:
+        web:
+          reactive:
+            function:
+              client:
+                ExchangeFunctions: TRACE

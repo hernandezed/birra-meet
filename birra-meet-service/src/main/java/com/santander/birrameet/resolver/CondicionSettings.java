@@ -1,12 +1,14 @@
 package com.santander.birrameet.resolver;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Optional;
 
+@Data
 @AllArgsConstructor
-@Getter
+@NoArgsConstructor
 public class CondicionSettings {
 
     private Double desde;

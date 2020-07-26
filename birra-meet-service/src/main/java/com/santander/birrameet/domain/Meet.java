@@ -1,14 +1,11 @@
 package com.santander.birrameet.domain;
 
-import com.santander.birrameet.security.model.User;
 import lombok.Getter;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -19,14 +16,12 @@ public class Meet {
     @Id
     private ObjectId id;
     private String title;
-    @DBRef
-    private User creator;
-    @DBRef
-    private Set<User> participants;
+    private ObjectId creator;
+    private Set<ObjectId> participants;
     private LocalDateTime date;
     private Location location;
 
-    public Meet(ObjectId id, String title, User creator, Set<User> participants, LocalDateTime date, Location location) {
+    public Meet(ObjectId id, String title, ObjectId creator, Set<ObjectId> participants, LocalDateTime date, Location location) {
         this.id = id;
         this.title = title;
         this.creator = creator;
@@ -35,11 +30,11 @@ public class Meet {
         this.location = location;
     }
 
-    public void addParticipant(User participantId) {
+    public void addParticipant(ObjectId participantId) {
         participants.add(participantId);
     }
 
-    public void removeParticipant(User participantId) {
+    public void removeParticipant(ObjectId participantId) {
         participants.remove(participantId);
     }
 }

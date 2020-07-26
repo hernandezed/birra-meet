@@ -1,6 +1,8 @@
 package com.santander.birrameet;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.santander.birrameet.extension.GlobalTestContainersExtension;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -12,13 +14,18 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+
 @ExtendWith(value = {GlobalTestContainersExtension.class, SpringExtension.class})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class BirraMeetApplicationTests {
 
     @Value("${local.server.port}")
     private Integer port;
+
+    public static WireMockServer wireMockServer = new WireMockServer(options().dynamicPort());
 
     private static final Integer REDIS_PORT = 6379;
     @Container
@@ -34,10 +41,13 @@ public abstract class BirraMeetApplicationTests {
                     .withExposedPorts(REDIS_PORT)
                     .waitingFor(Wait.forListeningPort());
 
+
     @DynamicPropertySource
     static void setUpMockedProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
         dynamicPropertyRegistry.add("spring.data.mongodb.uri", () -> "mongodb://localhost:" + MONGODB_CONTAINER.getMappedPort(27017) + "/birra-meet");
         dynamicPropertyRegistry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(REDIS_PORT));
+        wireMockServer.start();
+        dynamicPropertyRegistry.add("clients.open-weather.base-url", () -> "localhost:" + wireMockServer.port());
     }
 
 
