@@ -2,7 +2,10 @@ package com.santander.birrameet.security.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.ToString;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,15 +14,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@ToString
 @AllArgsConstructor
 @Getter
+@Document
 public class User implements UserDetails {
+    @Id
+    private ObjectId id;
+    @Indexed
     private String username;
     private String password;
     private Boolean enabled;
     private List<Role> roles;
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
