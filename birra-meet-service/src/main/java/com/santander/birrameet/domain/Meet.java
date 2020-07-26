@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Optional;
@@ -22,10 +23,10 @@ public class Meet {
     private User creator;
     @DBRef
     private Set<User> participants;
-    private ZonedDateTime date;
+    private LocalDateTime date;
     private Location location;
 
-    public Meet(ObjectId id, String title, User creator, Set<User> participants, ZonedDateTime date, Location location) {
+    public Meet(ObjectId id, String title, User creator, Set<User> participants, LocalDateTime date, Location location) {
         this.id = id;
         this.title = title;
         this.creator = creator;
