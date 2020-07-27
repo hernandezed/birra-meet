@@ -40,6 +40,7 @@ public class ITMeetController extends BirraMeetApplicationTests {
     @Value("${clients.open-weather.api-key}")
     private String apikey;
     private Meet meet;
+    private Meet meetOpenWeatherApiError;
 
     @BeforeAll
     void beforeAll() {
@@ -48,12 +49,15 @@ public class ITMeetController extends BirraMeetApplicationTests {
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                         .withBodyFile("response/openWeather_-50_40.json")));
 
+        BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-60.0&lat=40.0&appid=" + apikey + "&units=metric"))
+                .willReturn(aResponse().withStatus(500)));
+
         User admin = new User(null, "moe", passwordEncoder.encode("123456"), true, List.of(Role.ROLE_ADMIN));
         Set<User> springfield = IntStream.range(0, 50).mapToObj(val -> new User(null, "SpringfieldCitizen" + val, passwordEncoder.encode("123456"), true, List.of(Role.ROLE_USER))).collect(Collectors.toSet());
         User savedAdmin = mongoTemplate.insert(admin).block();
         Set<ObjectId> participants = Set.copyOf(Objects.requireNonNull(mongoTemplate.insertAll(springfield).map(User::getId).collect(Collectors.toList()).block()));
-        Meet meet = new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-50d, 40d));
-        this.meet = mongoTemplate.insert(meet).block();
+        this.meet = mongoTemplate.insert(new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-50d, 40d))).block();
+        this.meetOpenWeatherApiError = mongoTemplate.insert(new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-60d, 40d))).block();
     }
 
     @Test
@@ -108,5 +112,16 @@ public class ITMeetController extends BirraMeetApplicationTests {
                 .expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
                 .expectBody()
                 .jsonPath("$.message").isEqualTo("Meet not found");
+    }
+
+
+    @Test
+    void getMeet_withApiError_mustThrowError() {
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path("/meet/{id}")
+                .build(meetOpenWeatherApiError.getId().toString()))
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+                .expectBody()
+                .jsonPath("$.message").isEqualTo("We are experiencing some problems, please retry in a few minutes.");
     }
 }

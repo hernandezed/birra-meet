@@ -4,6 +4,7 @@ import com.santander.birrameet.connectors.OpenWeatherClient;
 import com.santander.birrameet.connectors.model.openWeather.Root;
 import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.dto.MeetWithBeerBoxDto;
+import com.santander.birrameet.exceptions.IntegrationError;
 import com.santander.birrameet.repository.MeetRepository;
 import com.santander.birrameet.resolver.ProvisionResolver;
 import com.santander.birrameet.security.model.Role;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -33,7 +35,9 @@ public class MeetServiceImpl implements MeetService {
     public Mono<MeetWithBeerBoxDto> findById(String id) {
         return meetRepository.findById(new ObjectId(id)).flatMap(meet -> ReactiveSecurityContextHolder
                 .getContext().flatMap(securityContext -> getMeet(meet, securityContext))
-                .switchIfEmpty(getMeet(meet, null)));
+                .switchIfEmpty(getMeet(meet, null)))
+                .onErrorMap((e) -> new IntegrationError())
+                .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
 
     private Mono<MeetWithBeerBoxDto> getMeet(Meet meet, SecurityContext securityContext) {
