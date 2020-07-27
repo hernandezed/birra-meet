@@ -22,4 +22,5 @@ public class MeetWithBeerBoxDto {
     private LocalDateTime date;
     private Location location;
     private Long boxes;
+    private Double temperature;
 }

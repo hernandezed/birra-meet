@@ -13,16 +13,18 @@ public class MeetResponseDto {
     private LocalDateTime date;
     private LocationResponseDto location;
     private Long boxes;
+    private Double temperature;
 
     @JsonCreator
     public MeetResponseDto(@JsonProperty String id, @JsonProperty String title, @JsonProperty Integer participants, @JsonProperty LocalDateTime date,
-                           @JsonProperty LocationResponseDto location, @JsonProperty Long boxes) {
+                           @JsonProperty LocationResponseDto location, @JsonProperty Long boxes, @JsonProperty Double temperature) {
         this.id = id;
         this.title = title;
         this.participants = participants;
         this.date = date;
         this.location = location;
         this.boxes = boxes;
+        this.temperature = temperature;
     }
 
     public String getId() {
@@ -49,4 +51,7 @@ public class MeetResponseDto {
         return boxes;
     }
 
+    public Double getTemperature() {
+        return temperature;
+    }
 }

@@ -68,6 +68,7 @@ public class ITMeetController extends BirraMeetApplicationTests {
                 .exchange()
                 .expectStatus().is2xxSuccessful()
                 .expectBody().jsonPath("$.boxes").value(Matchers.equalTo(17))
+                .jsonPath("$.temperature").value(Matchers.equalTo(28.17d))
                 .jsonPath("$.id").exists();
     }
 
@@ -83,6 +84,7 @@ public class ITMeetController extends BirraMeetApplicationTests {
                 .exchange()
                 .expectStatus().is2xxSuccessful()
                 .expectBody().jsonPath("$.boxes").doesNotExist()
+                .jsonPath("$.temperature").value(Matchers.equalTo(28.17d))
                 .jsonPath("$.id").exists();
     }
 
@@ -94,6 +96,7 @@ public class ITMeetController extends BirraMeetApplicationTests {
                 .expectStatus().is2xxSuccessful()
                 .expectBody()
                 .jsonPath("$.boxes").doesNotExist()
+                .jsonPath("$.temperature").value(Matchers.equalTo(28.17d))
                 .jsonPath("$.id").exists();
     }
 

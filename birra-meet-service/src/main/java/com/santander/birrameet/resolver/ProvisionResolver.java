@@ -15,10 +15,7 @@ public class ProvisionResolver {
     private final OpenWeatherClient openWeatherClient;
     private final ProvisionSettings provisionSettings;
 
-    public Long resolve(Meet meet) {
-        Root root = openWeatherClient.getForecastForThirtyDays(meet.getLocation().getLongitude(), meet.getLocation().getLatitude());
-        double temperature = root.getList().stream().filter(whetherList -> LocalDate.ofEpochDay(whetherList.getDt() / 86400).equals(meet.getDate().toLocalDate()))
-                .findFirst().get().getTemp().getMax();
+    public Long resolve(Meet meet, double temperature) {
         CondicionSettings condicionSettings = provisionSettings.getCondiciones().stream()
                 .filter(condicion -> condicion.getDesde() <= temperature && condicion.getHasta() >= temperature).findFirst()
                 .get();
