@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -66,7 +67,8 @@ public class ITMeetController extends BirraMeetApplicationTests {
                 .header("Authorization", "Bearer " + loginResponseDto.getToken())
                 .exchange()
                 .expectStatus().is2xxSuccessful()
-                .expectBody().jsonPath("$.boxes").value(Matchers.equalTo(17));
+                .expectBody().jsonPath("$.boxes").value(Matchers.equalTo(17))
+                .jsonPath("$.id").exists();
     }
 
     @Test
@@ -80,6 +82,28 @@ public class ITMeetController extends BirraMeetApplicationTests {
                 .header("Authorization", "Bearer " + loginResponseDto.getToken())
                 .exchange()
                 .expectStatus().is2xxSuccessful()
-                .expectBody().jsonPath("$.boxes").doesNotExist();
+                .expectBody().jsonPath("$.boxes").doesNotExist()
+                .jsonPath("$.id").exists();
+    }
+
+    @Test
+    void getMeet_withMeetWith50Participants_andDayWithMore25Degree_withoutUser_mustReturnMeetWithoutBoxes() {
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path("/meet/{id}")
+                .build(meet.getId()))
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody()
+                .jsonPath("$.boxes").doesNotExist()
+                .jsonPath("$.id").exists();
+    }
+
+    @Test
+    void getMeet_withInvalidId_mustThrowError() {
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path("/meet/{id}")
+                .build(ObjectId.get().toString()))
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
+                .expectBody()
+                .jsonPath("$.message").isEqualTo("Meet not found");
     }
 }
