@@ -1,11 +1,11 @@
 package com.santander.birrameet.controller;
 
+
 import com.santander.birrameet.resolver.ProvisionResolver;
-import com.santander.birrameet.response.LocationResponseDto;
 import com.santander.birrameet.response.MeetResponseDto;
 import com.santander.birrameet.service.MeetService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import ma.glasnost.orika.MapperFacade;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,14 +19,10 @@ public class MeetController {
 
     private final MeetService meetService;
     private final ProvisionResolver provisionResolver;
+    private final MapperFacade mapperFacade;
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<MeetResponseDto>> find(@PathVariable String id) {
-        return meetService.findById(id).map(meet -> {
-            Long boxes = provisionResolver.resolve(meet);
-            return ResponseEntity.ok(new MeetResponseDto(meet.getId().toString(), meet.getTitle(), meet.getParticipants().size(),
-                    meet.getDate(), new LocationResponseDto(meet.getLocation().getLongitude(), meet.getLocation().getLatitude()),
-                    boxes));
-        });
+    public Mono<MeetResponseDto> find(@PathVariable String id) {
+        return meetService.findById(id).map(meet -> mapperFacade.map(meet, MeetResponseDto.class));
     }
 }

@@ -3,7 +3,6 @@ package com.santander.birrameet.response;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.xml.stream.Location;
 import java.time.LocalDateTime;
 
 public class MeetResponseDto {
@@ -49,4 +48,5 @@ public class MeetResponseDto {
     public Long getBoxes() {
         return boxes;
     }
+
 }

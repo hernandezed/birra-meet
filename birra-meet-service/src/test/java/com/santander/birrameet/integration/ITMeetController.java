@@ -38,38 +38,48 @@ public class ITMeetController extends BirraMeetApplicationTests {
     private WebTestClient webTestClient;
     @Value("${clients.open-weather.api-key}")
     private String apikey;
+    private Meet meet;
 
     @BeforeAll
     void beforeAll() {
-        BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-50.0&lat=40.0&appid=" + apikey+ "&units=metric"))
+        BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-50.0&lat=40.0&appid=" + apikey + "&units=metric"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                         .withBodyFile("response/openWeather_-50_40.json")));
-    }
-
-    @Test
-    void getNeededBeers_withMeetWith50Participants_andDayWith30Degree_mustReturn17Boxes() {
-
 
         User admin = new User(null, "moe", passwordEncoder.encode("123456"), true, List.of(Role.ROLE_ADMIN));
         Set<User> springfield = IntStream.range(0, 50).mapToObj(val -> new User(null, "SpringfieldCitizen" + val, passwordEncoder.encode("123456"), true, List.of(Role.ROLE_USER))).collect(Collectors.toSet());
         User savedAdmin = mongoTemplate.insert(admin).block();
         Set<ObjectId> participants = Set.copyOf(Objects.requireNonNull(mongoTemplate.insertAll(springfield).map(User::getId).collect(Collectors.toList()).block()));
         Meet meet = new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-50d, 40d));
+        this.meet = mongoTemplate.insert(meet).block();
+    }
 
-        mongoTemplate.insert(meet).block();
+    @Test
+    void getMeet_withMeetWith50Participants_andDayWithMore25Degree_withAdminUser_mustReturnMeetWith17Boxes() {
         LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
                 .body(BodyInserters.fromValue(new LoginRequestDto("moe", "123456")))
                 .exchange().returnResult(LoginResponseDto.class)
                 .getResponseBody().blockLast();
-
-
         webTestClient.get().uri(uriBuilder -> uriBuilder.path("/meet/{id}")
                 .build(meet.getId()))
                 .header("Authorization", "Bearer " + loginResponseDto.getToken())
                 .exchange()
                 .expectStatus().is2xxSuccessful()
                 .expectBody().jsonPath("$.boxes").value(Matchers.equalTo(17));
+    }
 
+    @Test
+    void getMeet_withMeetWith50Participants_andDayWithMore25Degree_withRegularUser_mustReturnMeetWithoutBoxes() {
+        LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
+                .body(BodyInserters.fromValue(new LoginRequestDto("SpringfieldCitizen1", "123456")))
+                .exchange().returnResult(LoginResponseDto.class)
+                .getResponseBody().blockLast();
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path("/meet/{id}")
+                .build(meet.getId()))
+                .header("Authorization", "Bearer " + loginResponseDto.getToken())
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody().jsonPath("$.boxes").doesNotExist();
     }
 }

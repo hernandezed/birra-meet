@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class User implements UserDetails {
     @Id
     private ObjectId id;
-    @Indexed
+    @Indexed(unique = true)
     private String username;
     private String password;
     private Boolean enabled;
