@@ -1,0 +1,19 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /birra-meet
+spring:
+  cache:
+    redis:
+      time-to-live: 3600000
+  data:
+    mongodb:
+      password: birra
+      username: birra-meet
+      host: localhost
+      port: 27017
+      database: birra-meet
+birra-meet:
+  jjwt:
+    secret: ksJiIl![s*bkPZ$r:ZyLv!Xp(8M~4C$_ck"w6sNRb'4WYB"K#Y2aM<Qr-ogl1/p
+    expiration: 28800
