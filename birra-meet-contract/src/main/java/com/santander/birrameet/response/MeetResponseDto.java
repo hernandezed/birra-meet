@@ -2,6 +2,7 @@ package com.santander.birrameet.response;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.santander.birrameet.commons.LocationApiDto;
 
 import java.time.LocalDateTime;
 
@@ -11,13 +12,14 @@ public class MeetResponseDto {
     private String title;
     private Integer participants;
     private LocalDateTime date;
-    private LocationResponseDto location;
+    private LocationApiDto location;
     private Long boxes;
     private Double temperature;
+    private String creator;
 
     @JsonCreator
     public MeetResponseDto(@JsonProperty String id, @JsonProperty String title, @JsonProperty Integer participants, @JsonProperty LocalDateTime date,
-                           @JsonProperty LocationResponseDto location, @JsonProperty Long boxes, @JsonProperty Double temperature) {
+                           @JsonProperty LocationApiDto location, @JsonProperty Long boxes, @JsonProperty Double temperature, @JsonProperty String creator) {
         this.id = id;
         this.title = title;
         this.participants = participants;
@@ -25,6 +27,7 @@ public class MeetResponseDto {
         this.location = location;
         this.boxes = boxes;
         this.temperature = temperature;
+        this.creator = creator;
     }
 
     public String getId() {
@@ -43,7 +46,7 @@ public class MeetResponseDto {
         return date;
     }
 
-    public LocationResponseDto getLocation() {
+    public LocationApiDto getLocation() {
         return location;
     }
 
@@ -53,5 +56,9 @@ public class MeetResponseDto {
 
     public Double getTemperature() {
         return temperature;
+    }
+
+    public String getCreator() {
+        return creator;
     }
 }

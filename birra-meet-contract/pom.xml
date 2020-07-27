@@ -3,6 +3,12 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>birra-meet</artifactId>
+        <groupId>com.santander</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>birra-meet-contract</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -11,13 +17,6 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
-    <parent>
-        <artifactId>birra-meet</artifactId>
-        <groupId>com.santander</groupId>
-        <version>0.0.1-SNAPSHOT</version>
-    </parent>
-    <artifactId>birra-meet-contract</artifactId>
-
 
 
 </project>

@@ -23,8 +23,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Mono<String> login(String username, String password) {
-      log.info("asdasdasdadasdadasd");
-        return userService.findByUserService(username).map(user -> {
+        return userService.findByUsername(username).map(user -> {
             if (Objects.nonNull(user) && passwordEncoder.matches(password, user.getPassword())) {
                 return jwtUtils.generateToken(user);
             } else {

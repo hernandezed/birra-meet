@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
 
@@ -17,7 +16,7 @@ public class MeetWithBeerBoxDto {
 
     private String id;
     private String title;
-    private ObjectId creator;
+    private String creator;
     private Integer participants;
     private LocalDateTime date;
     private Location location;

@@ -6,8 +6,10 @@ import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.dto.MeetWithBeerBoxDto;
 import com.santander.birrameet.exceptions.IntegrationError;
 import com.santander.birrameet.repository.MeetRepository;
+import com.santander.birrameet.repository.UserRepository;
 import com.santander.birrameet.resolver.ProvisionResolver;
 import com.santander.birrameet.security.model.Role;
+import com.santander.birrameet.security.model.User;
 import com.santander.birrameet.service.MeetService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -30,14 +32,26 @@ public class MeetServiceImpl implements MeetService {
     private final MeetRepository meetRepository;
     private final ProvisionResolver provisionResolver;
     private final OpenWeatherClient openWeatherClient;
+    private final UserRepository userRepository;
 
     @Override
     public Mono<MeetWithBeerBoxDto> findById(String id) {
         return meetRepository.findById(new ObjectId(id)).flatMap(meet -> ReactiveSecurityContextHolder
                 .getContext().flatMap(securityContext -> getMeet(meet, securityContext))
                 .switchIfEmpty(getMeet(meet, null)))
-                .onErrorMap((e) -> new IntegrationError())
+                .onErrorMap(e -> new IntegrationError())
                 .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
+    }
+
+    @Override
+    public Mono<MeetWithBeerBoxDto> create(Meet meet) {
+        return ReactiveSecurityContextHolder
+                .getContext().map(securityContext -> securityContext.getAuthentication())
+                .flatMap(authentication -> {
+                    User user = (User) authentication.getDetails();
+                    meet.withCreator(user.getId());
+                    return meetRepository.insert(meet).flatMap(createdMeet -> createMeetWithBeerBoxDto(meet, null, null));
+                });
     }
 
     private Mono<MeetWithBeerBoxDto> getMeet(Meet meet, SecurityContext securityContext) {
@@ -48,11 +62,13 @@ public class MeetServiceImpl implements MeetService {
                 .anyMatch(auth -> auth.equals(Role.ROLE_ADMIN.name()))) {
             boxes = provisionResolver.resolve(meet, temperature);
         }
-        return Mono.just(createMeetWithBeerBoxDto(meet, boxes, temperature));
+        return createMeetWithBeerBoxDto(meet, boxes, temperature);
     }
 
-    private MeetWithBeerBoxDto createMeetWithBeerBoxDto(Meet meet, Long boxes, Double temperature) {
-        return new MeetWithBeerBoxDto(meet.getId().toString(), meet.getTitle(), meet.getCreator(), meet.getParticipants().size(), meet.getDate(), meet.getLocation(), boxes, temperature);
+    private Mono<MeetWithBeerBoxDto> createMeetWithBeerBoxDto(Meet meet, Long boxes, Double temperature) {
+        return userRepository.findById(meet.getCreator()).map(user -> new MeetWithBeerBoxDto(meet.getId().toString(), meet.getTitle(), user.getUsername(), meet.getParticipants().size(), meet.getDate(), meet.getLocation(), boxes, temperature));
+
+
     }
 
     private double getTemperature(Meet meet) {

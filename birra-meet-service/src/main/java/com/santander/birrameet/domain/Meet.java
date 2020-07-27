@@ -37,4 +37,8 @@ public class Meet {
     public void removeParticipant(ObjectId participantId) {
         participants.remove(participantId);
     }
+
+    public void withCreator(ObjectId creatorId){
+        creator = creatorId;
+    }
 }

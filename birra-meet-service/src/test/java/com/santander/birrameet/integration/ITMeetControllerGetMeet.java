@@ -29,14 +29,8 @@ import java.util.stream.IntStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
-public class ITMeetController extends BirraMeetApplicationTests {
+public class ITMeetControllerGetMeet extends BirraMeetApplicationTests {
 
-    @Autowired
-    private ReactiveMongoTemplate mongoTemplate;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private WebTestClient webTestClient;
     @Value("${clients.open-weather.api-key}")
     private String apikey;
     private Meet meet;
@@ -59,7 +53,6 @@ public class ITMeetController extends BirraMeetApplicationTests {
         this.meet = mongoTemplate.insert(new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-50d, 40d))).block();
         this.meetOpenWeatherApiError = mongoTemplate.insert(new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-60d, 40d))).block();
     }
-
     @Test
     void getMeet_withMeetWith50Participants_andDayWithMore25Degree_withAdminUser_mustReturnMeetWith17Boxes() {
         LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")

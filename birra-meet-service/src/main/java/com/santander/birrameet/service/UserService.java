@@ -5,5 +5,5 @@ import reactor.core.publisher.Mono;
 
 public interface UserService {
 
-    Mono<User> findByUserService(String username);
+    Mono<User> findByUsername(String username);
 }

@@ -1,15 +1,22 @@
 package com.santander.birrameet;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.extension.GlobalTestContainersExtension;
+import com.santander.birrameet.security.model.User;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -24,6 +31,12 @@ public abstract class BirraMeetApplicationTests {
 
     @Value("${local.server.port}")
     private Integer port;
+    @Autowired
+    protected WebTestClient webTestClient;
+    @Autowired
+    protected ReactiveMongoTemplate mongoTemplate;
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
 
     public static WireMockServer wireMockServer = new WireMockServer(options().dynamicPort());
 
@@ -48,6 +61,12 @@ public abstract class BirraMeetApplicationTests {
         dynamicPropertyRegistry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(REDIS_PORT));
         wireMockServer.start();
         dynamicPropertyRegistry.add("clients.open-weather.base-url", () -> "localhost:" + wireMockServer.port());
+    }
+
+    @AfterAll
+    public void cleanUpContext() {
+        mongoTemplate.dropCollection(Meet.class);
+        mongoTemplate.dropCollection(User.class);
     }
 
 

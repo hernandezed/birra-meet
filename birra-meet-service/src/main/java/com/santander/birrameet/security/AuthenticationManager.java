@@ -1,6 +1,7 @@
 package com.santander.birrameet.security;
 
 import com.santander.birrameet.security.utils.JWTUtils;
+import com.santander.birrameet.service.UserService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -19,6 +20,7 @@ import java.util.List;
 public class AuthenticationManager implements ReactiveAuthenticationManager {
 
     private final JWTUtils jwtUtils;
+    private final UserService userService;
 
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
@@ -35,7 +37,11 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
             for (String rolemap : rolesMap) {
                 authorities.add(new SimpleGrantedAuthority(rolemap));
             }
-            return Mono.just(new UsernamePasswordAuthenticationToken(username, null, authorities));
+            UsernamePasswordAuthenticationToken token =new UsernamePasswordAuthenticationToken(username, null, authorities);
+            return userService.findByUsername(username).map(user -> {
+                token.setDetails(user);
+                return token;
+            });
         } catch (Exception e) {
             return Mono.empty();
         }

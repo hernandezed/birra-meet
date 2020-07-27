@@ -1,12 +1,14 @@
 package com.santander.birrameet.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.exceptions.IntegrationError;
+import com.santander.birrameet.request.MeetCreateRequestDto;
 import com.santander.birrameet.response.ApiError;
 import com.santander.birrameet.response.MeetResponseDto;
 import com.santander.birrameet.service.MeetService;
 import lombok.RequiredArgsConstructor;
-import ma.glasnost.orika.MapperFacade;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +22,17 @@ import java.util.NoSuchElementException;
 public class MeetController {
 
     private final MeetService meetService;
-    private final MapperFacade mapperFacade;
+    private final ObjectMapper objectMapper;
 
     @GetMapping("/{id}")
     public Mono<MeetResponseDto> find(@PathVariable String id) {
-        return meetService.findById(id).map(meet -> mapperFacade.map(meet, MeetResponseDto.class));
+        return meetService.findById(id).map(meet -> objectMapper.convertValue(meet, MeetResponseDto.class));
+    }
 
+    @PostMapping("")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<MeetResponseDto> create(@RequestBody MeetCreateRequestDto meetCreateRequestDto) {
+        return meetService.create(objectMapper.convertValue(meetCreateRequestDto, Meet.class)).map(meet -> objectMapper.convertValue(meet, MeetResponseDto.class));
     }
 
     @ExceptionHandler(NoSuchElementException.class)

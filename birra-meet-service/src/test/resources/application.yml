@@ -12,15 +12,12 @@ birra-meet:
   provision-strategy:
     birras-por-caja: 6
     condiciones:
-      -
-        hasta: 19
+      - hasta: 19
         birras: 0.75
-      -
-        desde: 20
+      - desde: 20
         hasta: 24
         birras: 1
-      -
-        desde: 25
+      - desde: 25
         birras: 2
 clients:
   open-weather:
@@ -29,8 +26,4 @@ logging:
   level:
     org:
       springframework:
-        web:
-          reactive:
-            function:
-              client:
-                ExchangeFunctions: TRACE
+        web: TRACE
