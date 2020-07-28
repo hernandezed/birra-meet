@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -59,7 +60,7 @@ public class MeetServiceImpl implements MeetService {
     }
 
     private void validate(Meet meet) {
-        if (StringUtils.isEmpty(meet.getTitle()) || meet.getDate() == null || meet.getLocation() == null) {
+        if (StringUtils.isEmpty(meet.getTitle()) || meet.getDate() == null || meet.getLocation() == null || LocalDateTime.now().compareTo(meet.getDate()) > 0) {
             throw new IllegalArgumentException();
         }
     }

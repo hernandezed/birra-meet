@@ -24,14 +24,13 @@ public class ITMeetControllerCreateMeet extends BirraMeetApplicationTests {
         mongoTemplate.insert(new User(null, "user_comun", passwordEncoder.encode("123456"), true, List.of(Role.ROLE_USER))).block();
     }
 
-
     @Test
     void createMeet_withValidRequest_withLoggedAdminUser_mustReturnMeetCreated() {
         LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
                 .body(BodyInserters.fromValue(new LoginRequestDto("moe", "123456")))
                 .exchange().returnResult(LoginResponseDto.class)
                 .getResponseBody().blockLast();
-        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("BirraJs", LocalDateTime.now(), new LocationApiDto(100.90d, -50d));
+        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("BirraJs", LocalDateTime.now().plusDays(3), new LocationApiDto(100.90d, -50d));
         webTestClient.post().uri("/meet")
                 .body(BodyInserters.fromValue(meetCreateDto))
                 .header("Authorization", "Bearer " + loginResponseDto.getToken())
@@ -48,7 +47,7 @@ public class ITMeetControllerCreateMeet extends BirraMeetApplicationTests {
 
     @Test
     void createMeet_withValidRequest_withoutLoggedUser_mustThrowError() {
-        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("BirraJs", LocalDateTime.now(), new LocationApiDto(100.90d, -50d));
+        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("BirraJs", LocalDateTime.now().plusDays(3).plusDays(3), new LocationApiDto(100.90d, -50d));
         webTestClient.post().uri("/meet")
                 .body(BodyInserters.fromValue(meetCreateDto))
                 .accept(MediaType.APPLICATION_JSON)
@@ -62,7 +61,7 @@ public class ITMeetControllerCreateMeet extends BirraMeetApplicationTests {
                 .body(BodyInserters.fromValue(new LoginRequestDto("user_comun", "123456")))
                 .exchange().returnResult(LoginResponseDto.class)
                 .getResponseBody().blockLast();
-        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("BirraJs", LocalDateTime.now(), new LocationApiDto(100.90d, -50d));
+        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("BirraJs", LocalDateTime.now().plusDays(3), new LocationApiDto(100.90d, -50d));
         webTestClient.post().uri("/meet")
                 .body(BodyInserters.fromValue(meetCreateDto))
                 .header("Authorization", "Bearer " + loginResponseDto.getToken())
@@ -77,7 +76,7 @@ public class ITMeetControllerCreateMeet extends BirraMeetApplicationTests {
                 .body(BodyInserters.fromValue(new LoginRequestDto("moe", "123456")))
                 .exchange().returnResult(LoginResponseDto.class)
                 .getResponseBody().blockLast();
-        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto(null, LocalDateTime.now(), new LocationApiDto(100.90d, -50d));
+        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto(null, LocalDateTime.now().plusDays(3), new LocationApiDto(100.90d, -50d));
         webTestClient.post().uri("/meet")
                 .body(BodyInserters.fromValue(meetCreateDto))
                 .header("Authorization", "Bearer " + loginResponseDto.getToken())
@@ -92,7 +91,7 @@ public class ITMeetControllerCreateMeet extends BirraMeetApplicationTests {
                 .body(BodyInserters.fromValue(new LoginRequestDto("moe", "123456")))
                 .exchange().returnResult(LoginResponseDto.class)
                 .getResponseBody().blockLast();
-        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("", LocalDateTime.now(), new LocationApiDto(100.90d, -50d));
+        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("", LocalDateTime.now().plusDays(3), new LocationApiDto(100.90d, -50d));
         webTestClient.post().uri("/meet")
                 .body(BodyInserters.fromValue(meetCreateDto))
                 .header("Authorization", "Bearer " + loginResponseDto.getToken())
@@ -122,7 +121,22 @@ public class ITMeetControllerCreateMeet extends BirraMeetApplicationTests {
                 .body(BodyInserters.fromValue(new LoginRequestDto("moe", "123456")))
                 .exchange().returnResult(LoginResponseDto.class)
                 .getResponseBody().blockLast();
-        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("Title", LocalDateTime.now(), null);
+        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("Title", LocalDateTime.now().plusDays(3), null);
+        webTestClient.post().uri("/meet")
+                .body(BodyInserters.fromValue(meetCreateDto))
+                .header("Authorization", "Bearer " + loginResponseDto.getToken())
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void createMeet_withInvalidDateBefore_withLoggedAdminUser_mustThrowError() {
+        LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
+                .body(BodyInserters.fromValue(new LoginRequestDto("moe", "123456")))
+                .exchange().returnResult(LoginResponseDto.class)
+                .getResponseBody().blockLast();
+        MeetCreateRequestDto meetCreateDto = new MeetCreateRequestDto("Title", LocalDateTime.now().minusDays(3),  new LocationApiDto(100.90d, -50d));
         webTestClient.post().uri("/meet")
                 .body(BodyInserters.fromValue(meetCreateDto))
                 .header("Authorization", "Bearer " + loginResponseDto.getToken())
