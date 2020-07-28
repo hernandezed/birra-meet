@@ -35,6 +35,11 @@ public class MeetController {
         return meetService.create(objectMapper.convertValue(meetCreateRequestDto, Meet.class)).map(meet -> objectMapper.convertValue(meet, MeetResponseDto.class));
     }
 
+    @PatchMapping("/{id}/enroll")
+    public Mono<MeetResponseDto> enroll(@PathVariable String id) {
+        return meetService.enroll(id).map(meet -> objectMapper.convertValue(meet, MeetResponseDto.class));
+    }
+
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ApiError> handleNoSuchElement(NoSuchElementException ex) {
         ApiError apiError = new ApiError(4040, "Meet not found");

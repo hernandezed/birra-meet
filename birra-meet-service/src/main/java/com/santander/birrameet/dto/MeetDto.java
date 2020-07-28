@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
-public class MeetWithBeerBoxDto {
+public class MeetDto {
 
     private String id;
     private String title;

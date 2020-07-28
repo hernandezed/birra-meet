@@ -2,12 +2,14 @@ package com.santander.birrameet.service;
 
 
 import com.santander.birrameet.domain.Meet;
-import com.santander.birrameet.dto.MeetWithBeerBoxDto;
+import com.santander.birrameet.dto.MeetDto;
 import reactor.core.publisher.Mono;
 
 public interface MeetService {
 
-    Mono<MeetWithBeerBoxDto> findById(String id);
+    Mono<MeetDto> findById(String id);
 
-    Mono<MeetWithBeerBoxDto> create(Meet meet);
+    Mono<MeetDto> create(Meet meet);
+
+    Mono<MeetDto> enroll(String id);
 }

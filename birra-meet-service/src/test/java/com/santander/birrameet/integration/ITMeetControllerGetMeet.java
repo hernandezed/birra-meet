@@ -27,21 +27,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 public class ITMeetControllerGetMeet extends BirraMeetApplicationTests {
 
-    @Value("${clients.open-weather.api-key}")
-    private String apikey;
     private Meet meet;
     private Meet meetOpenWeatherApiError;
 
     @BeforeAll
     void beforeAll() {
-        BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-50.0&lat=40.0&appid=" + apikey + "&units=metric"))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                        .withBodyFile("response/openWeather_-50_40.json")));
-
-        BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-60.0&lat=40.0&appid=" + apikey + "&units=metric"))
-                .willReturn(aResponse().withStatus(500)));
-
         User admin = new User(null, "moe", passwordEncoder.encode("123456"), true, List.of(Role.ROLE_ADMIN));
         Set<User> springfield = IntStream.range(0, 50).mapToObj(val -> new User(null, "SpringfieldCitizen" + val, passwordEncoder.encode("123456"), true, List.of(Role.ROLE_USER))).collect(Collectors.toSet());
         User savedAdmin = mongoTemplate.insert(admin).block();

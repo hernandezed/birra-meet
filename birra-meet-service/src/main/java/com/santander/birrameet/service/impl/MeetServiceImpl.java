@@ -3,7 +3,7 @@ package com.santander.birrameet.service.impl;
 import com.santander.birrameet.connectors.OpenWeatherClient;
 import com.santander.birrameet.connectors.model.openWeather.Root;
 import com.santander.birrameet.domain.Meet;
-import com.santander.birrameet.dto.MeetWithBeerBoxDto;
+import com.santander.birrameet.dto.MeetDto;
 import com.santander.birrameet.exceptions.IntegrationError;
 import com.santander.birrameet.repository.MeetRepository;
 import com.santander.birrameet.repository.UserRepository;
@@ -38,7 +38,7 @@ public class MeetServiceImpl implements MeetService {
     private final UserRepository userRepository;
 
     @Override
-    public Mono<MeetWithBeerBoxDto> findById(String id) {
+    public Mono<MeetDto> findById(String id) {
         return meetRepository.findById(new ObjectId(id)).flatMap(meet -> ReactiveSecurityContextHolder
                 .getContext().flatMap(securityContext -> getMeet(meet, securityContext))
                 .switchIfEmpty(getMeet(meet, null)))
@@ -48,15 +48,30 @@ public class MeetServiceImpl implements MeetService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public Mono<MeetWithBeerBoxDto> create(Meet meet) {
+    public Mono<MeetDto> create(Meet meet) {
         validate(meet);
         return ReactiveSecurityContextHolder
-                .getContext().map(securityContext -> securityContext.getAuthentication())
+                .getContext().map(SecurityContext::getAuthentication)
                 .flatMap(authentication -> {
                     User user = (User) authentication.getDetails();
                     meet.withCreator(user.getId());
                     return meetRepository.insert(meet).flatMap(createdMeet -> createMeetWithBeerBoxDto(meet, null, null));
                 });
+    }
+
+    @Override
+    public Mono<MeetDto> enroll(String id) {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication)
+                .flatMap(authentication -> {
+                    User user = (User) authentication.getDetails();
+                    return meetRepository.findById(new ObjectId(id)).flatMap(meet -> {
+                        meet.addParticipant(user.getId());
+                        return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
+                                .flatMap(context -> getMeet(updated, context)));
+                    });
+                }).onErrorMap(e -> new IntegrationError())
+                .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
 
     private void validate(Meet meet) {
@@ -65,7 +80,7 @@ public class MeetServiceImpl implements MeetService {
         }
     }
 
-    private Mono<MeetWithBeerBoxDto> getMeet(Meet meet, SecurityContext securityContext) {
+    private Mono<MeetDto> getMeet(Meet meet, SecurityContext securityContext) {
         Authentication authentication = Optional.ofNullable(securityContext).map(SecurityContext::getAuthentication).orElse(null);
         Long boxes = null;
         double temperature = getTemperature(meet);
@@ -76,8 +91,8 @@ public class MeetServiceImpl implements MeetService {
         return createMeetWithBeerBoxDto(meet, boxes, temperature);
     }
 
-    private Mono<MeetWithBeerBoxDto> createMeetWithBeerBoxDto(Meet meet, Long boxes, Double temperature) {
-        return userRepository.findById(meet.getCreator()).map(user -> new MeetWithBeerBoxDto(meet.getId().toString(), meet.getTitle(), user.getUsername(), meet.getParticipants().size(), meet.getDate(), meet.getLocation(), boxes, temperature));
+    private Mono<MeetDto> createMeetWithBeerBoxDto(Meet meet, Long boxes, Double temperature) {
+        return userRepository.findById(meet.getCreator()).map(user -> new MeetDto(meet.getId().toString(), meet.getTitle(), user.getUsername(), meet.getParticipants().size(), meet.getDate(), meet.getLocation(), boxes, temperature));
 
 
     }

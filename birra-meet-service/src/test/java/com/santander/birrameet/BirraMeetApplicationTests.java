@@ -5,6 +5,7 @@ import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.extension.GlobalTestContainersExtension;
 import com.santander.birrameet.security.model.User;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -21,6 +23,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 @ExtendWith(value = {GlobalTestContainersExtension.class, SpringExtension.class})
@@ -31,6 +34,8 @@ public abstract class BirraMeetApplicationTests {
 
     @Value("${local.server.port}")
     private Integer port;
+    @Value("${clients.open-weather.api-key}")
+    private String apikey;
     @Autowired
     protected WebTestClient webTestClient;
     @Autowired
@@ -61,6 +66,18 @@ public abstract class BirraMeetApplicationTests {
         dynamicPropertyRegistry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(REDIS_PORT));
         wireMockServer.start();
         dynamicPropertyRegistry.add("clients.open-weather.base-url", () -> "localhost:" + wireMockServer.port());
+    }
+
+    @BeforeAll
+    void initContext() {
+        BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-50.0&lat=40.0&appid=" + apikey + "&units=metric"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("response/openWeather_-50_40.json")));
+
+        BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-60.0&lat=40.0&appid=" + apikey + "&units=metric"))
+                .willReturn(aResponse().withStatus(500)));
+
     }
 
     @AfterAll
