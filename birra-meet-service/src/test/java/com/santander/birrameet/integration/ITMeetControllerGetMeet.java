@@ -1,6 +1,7 @@
 package com.santander.birrameet.integration;
 
 import com.santander.birrameet.BirraMeetApplicationTests;
+import com.santander.birrameet.domain.Assistant;
 import com.santander.birrameet.domain.Location;
 import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.request.LoginRequestDto;
@@ -11,9 +12,7 @@ import org.bson.types.ObjectId;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.time.LocalDateTime;
@@ -22,8 +21,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 public class ITMeetControllerGetMeet extends BirraMeetApplicationTests {
 
@@ -35,7 +32,7 @@ public class ITMeetControllerGetMeet extends BirraMeetApplicationTests {
         User admin = new User(null, "moe", passwordEncoder.encode("123456"), true, List.of(Role.ROLE_ADMIN));
         Set<User> springfield = IntStream.range(0, 50).mapToObj(val -> new User(null, "SpringfieldCitizen" + val, passwordEncoder.encode("123456"), true, List.of(Role.ROLE_USER))).collect(Collectors.toSet());
         User savedAdmin = mongoTemplate.insert(admin).block();
-        Set<ObjectId> participants = Set.copyOf(Objects.requireNonNull(mongoTemplate.insertAll(springfield).map(User::getId).collect(Collectors.toList()).block()));
+        Set<Assistant> participants = Set.copyOf(Objects.requireNonNull(mongoTemplate.insertAll(springfield).map(User::getId).map((id) -> new Assistant(id, false)).collect(Collectors.toList()).block()));
         this.meet = mongoTemplate.insert(new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-50d, 40d))).block();
         this.meetOpenWeatherApiError = mongoTemplate.insert(new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-60d, 40d))).block();
     }

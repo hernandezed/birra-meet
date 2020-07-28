@@ -17,11 +17,11 @@ public class Meet {
     private ObjectId id;
     private String title;
     private ObjectId creator;
-    private Set<ObjectId> participants;
+    private Set<Assistant> participants;
     private LocalDateTime date;
     private Location location;
 
-    public Meet(ObjectId id, String title, ObjectId creator, Set<ObjectId> participants, LocalDateTime date, Location location) {
+    public Meet(ObjectId id, String title, ObjectId creator, Set<Assistant> participants, LocalDateTime date, Location location) {
         this.id = id;
         this.title = title;
         this.creator = creator;
@@ -31,11 +31,11 @@ public class Meet {
     }
 
     public void addParticipant(ObjectId participantId) {
-        participants.add(participantId);
+        participants.add(new Assistant(participantId, false));
     }
 
     public void removeParticipant(ObjectId participantId) {
-        participants.remove(participantId);
+        participants.remove(new Assistant(participantId, false));
     }
 
     public void withCreator(ObjectId creatorId) {

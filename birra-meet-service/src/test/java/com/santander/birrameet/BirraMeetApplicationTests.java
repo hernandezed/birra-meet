@@ -70,6 +70,7 @@ public abstract class BirraMeetApplicationTests {
 
     @BeforeAll
     void initContext() {
+        BirraMeetApplicationTests.wireMockServer.resetAll();
         BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-50.0&lat=40.0&appid=" + apikey + "&units=metric"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -82,8 +83,8 @@ public abstract class BirraMeetApplicationTests {
 
     @AfterAll
     public void cleanUpContext() {
-        mongoTemplate.dropCollection(Meet.class);
-        mongoTemplate.dropCollection(User.class);
+        mongoTemplate.dropCollection(Meet.class).block();
+        mongoTemplate.dropCollection(User.class).block();
     }
 
 
