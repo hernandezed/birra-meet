@@ -47,5 +47,10 @@ public class MeetController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ApiError apiError = new ApiError(4000, "Bad request!.");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
+    }
 
 }

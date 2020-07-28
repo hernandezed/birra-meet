@@ -13,11 +13,13 @@ import com.santander.birrameet.security.model.User;
 import com.santander.birrameet.service.MeetService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
@@ -44,7 +46,9 @@ public class MeetServiceImpl implements MeetService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public Mono<MeetWithBeerBoxDto> create(Meet meet) {
+        validate(meet);
         return ReactiveSecurityContextHolder
                 .getContext().map(securityContext -> securityContext.getAuthentication())
                 .flatMap(authentication -> {
@@ -52,6 +56,12 @@ public class MeetServiceImpl implements MeetService {
                     meet.withCreator(user.getId());
                     return meetRepository.insert(meet).flatMap(createdMeet -> createMeetWithBeerBoxDto(meet, null, null));
                 });
+    }
+
+    private void validate(Meet meet) {
+        if (StringUtils.isEmpty(meet.getTitle()) || meet.getDate() == null || meet.getLocation() == null) {
+            throw new IllegalArgumentException();
+        }
     }
 
     private Mono<MeetWithBeerBoxDto> getMeet(Meet meet, SecurityContext securityContext) {

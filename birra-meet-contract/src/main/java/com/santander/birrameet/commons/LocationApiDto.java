@@ -8,7 +8,7 @@ public class LocationApiDto {
     private Double latitude;
 
     @JsonCreator
-    public LocationApiDto(@JsonProperty("longitude") Double longitude, @JsonProperty("latitude") Double latitude) {
+    public LocationApiDto(@JsonProperty("longitude") double longitude, @JsonProperty("latitude") double latitude) {
         this.longitude = longitude;
         this.latitude = latitude;
     }

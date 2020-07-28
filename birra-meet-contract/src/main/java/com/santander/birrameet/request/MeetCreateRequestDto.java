@@ -7,7 +7,6 @@ import com.santander.birrameet.commons.LocationApiDto;
 import java.time.LocalDateTime;
 
 public class MeetCreateRequestDto {
-
     private String title;
     private LocalDateTime date;
     private LocationApiDto location;
