@@ -40,8 +40,8 @@ public class MeetServiceImpl implements MeetService {
     @Override
     public Mono<MeetDto> findById(String id) {
         return meetRepository.findById(new ObjectId(id)).flatMap(meet -> ReactiveSecurityContextHolder
-                .getContext().flatMap(securityContext -> getMeet(meet, securityContext))
-                .switchIfEmpty(getMeet(meet, null)))
+                .getContext().flatMap(securityContext -> createMeetDto(meet, securityContext))
+                .switchIfEmpty(createMeetDto(meet, null)))
                 .onErrorMap(e -> new IntegrationError())
                 .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
@@ -68,26 +68,25 @@ public class MeetServiceImpl implements MeetService {
                     return meetRepository.findById(new ObjectId(id)).flatMap(meet -> {
                         meet.addParticipant(user.getId());
                         return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
-                                .flatMap(context -> getMeet(updated, context)));
+                                .flatMap(context -> createMeetDto(updated, context)));
                     });
                 }).onErrorMap(e -> new IntegrationError())
                 .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
 
     @Override
-    public Mono<Void> checkin(String id) {
+    public Mono<MeetDto> checkin(String id) {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .flatMap(authentication -> {
                     User user = (User) authentication.getDetails();
-                    return meetRepository.findById(new ObjectId(id))
-                            .flatMap(meet -> {
-                                meet.getParticipants().stream()
-                                        .filter(assistant -> assistant.getUserId()
-                                                .equals(user.getId())).findFirst().get().assist();
-                                return meetRepository.save(meet);
-                            }).flatMap((meet) -> Mono.empty());
-                });
+                    return meetRepository.findById(new ObjectId(id)).flatMap(meet -> {
+                        meet.getParticipants().stream().filter(assistant -> assistant.getUserId().equals(user.getId())).findFirst().get().assist();
+                        return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
+                                .flatMap(context -> createMeetDto(updated, context)));
+                    });
+                }).onErrorMap(e -> new IntegrationError())
+                .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
 
     private void validate(Meet meet) {
@@ -96,13 +95,16 @@ public class MeetServiceImpl implements MeetService {
         }
     }
 
-    private Mono<MeetDto> getMeet(Meet meet, SecurityContext securityContext) {
+    private Mono<MeetDto> createMeetDto(Meet meet, SecurityContext securityContext) {
         Authentication authentication = Optional.ofNullable(securityContext).map(SecurityContext::getAuthentication).orElse(null);
         Long boxes = null;
-        double temperature = getTemperature(meet);
-        if (Objects.nonNull(authentication) && authentication.getAuthorities().stream().map(auth -> (SimpleGrantedAuthority) auth).map(SimpleGrantedAuthority::getAuthority)
-                .anyMatch(auth -> auth.equals(Role.ROLE_ADMIN.name()))) {
-            boxes = provisionResolver.resolve(meet, temperature);
+        Double temperature = null;
+        if (LocalDateTime.now().compareTo(meet.getDate()) <= 0 && LocalDateTime.now().plusMonths(1).compareTo(meet.getDate()) >= 1) {
+            temperature = getTemperature(meet);
+            if (Objects.nonNull(authentication) && authentication.getAuthorities().stream().map(auth -> (SimpleGrantedAuthority) auth).map(SimpleGrantedAuthority::getAuthority)
+                    .anyMatch(auth -> auth.equals(Role.ROLE_ADMIN.name()))) {
+                boxes = provisionResolver.resolve(meet, temperature);
+            }
         }
         return createMeetWithBeerBoxDto(meet, boxes, temperature);
     }

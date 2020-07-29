@@ -13,5 +13,5 @@ public interface MeetService {
 
     Mono<MeetDto> enroll(String id);
 
-    Mono<Void> checkin(String id);
+    Mono<MeetDto> checkin(String id);
 }

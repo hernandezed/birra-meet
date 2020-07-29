@@ -3,6 +3,7 @@ package com.santander.birrameet.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.santander.birrameet.domain.Meet;
+import com.santander.birrameet.dto.MeetDto;
 import com.santander.birrameet.exceptions.IntegrationError;
 import com.santander.birrameet.request.MeetCreateRequestDto;
 import com.santander.birrameet.response.ApiError;
@@ -41,7 +42,7 @@ public class MeetController {
     }
 
     @PatchMapping("/{id}/checkin")
-    public Mono<Void> checkin(@PathVariable String id) {
+    public Mono<MeetDto> checkin(@PathVariable String id) {
         return meetService.checkin(id);
     }
 

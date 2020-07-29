@@ -12,17 +12,27 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 public class ITMeetControllerEnroll extends BirraMeetApplicationTests {
 
     @BeforeAll
     void createContext() {
+        BirraMeetApplicationTests.wireMockServer.resetAll();
+        BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-50.0&lat=40.0&appid=" + apikey + "&units=metric"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBodyFile("response/openWeather_-50_40.json")));
+
+        BirraMeetApplicationTests.wireMockServer.stubFor(get(urlEqualTo("/forecast/climate?lon=-60.0&lat=40.0&appid=" + apikey + "&units=metric"))
+                .willReturn(aResponse().withStatus(500)));
         mongoTemplate.insert(new User(null, "moe", passwordEncoder.encode("123456"), true, List.of(Role.ROLE_ADMIN))).block();
         mongoTemplate.insert(new User(null, "user_comun", passwordEncoder.encode("123456"), true, List.of(Role.ROLE_USER))).block();
     }
