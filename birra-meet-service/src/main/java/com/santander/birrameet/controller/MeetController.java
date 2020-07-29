@@ -40,6 +40,11 @@ public class MeetController {
         return meetService.enroll(id).map(meet -> objectMapper.convertValue(meet, MeetResponseDto.class));
     }
 
+    @PatchMapping("/{id}/checkin")
+    public Mono<Void> checkin(@PathVariable String id) {
+        return meetService.checkin(id);
+    }
+
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ApiError> handleNoSuchElement(NoSuchElementException ex) {
         ApiError apiError = new ApiError(4040, "Meet not found");

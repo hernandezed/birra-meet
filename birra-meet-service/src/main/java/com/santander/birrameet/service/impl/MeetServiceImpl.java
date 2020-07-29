@@ -74,6 +74,22 @@ public class MeetServiceImpl implements MeetService {
                 .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
 
+    @Override
+    public Mono<Void> checkin(String id) {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication)
+                .flatMap(authentication -> {
+                    User user = (User) authentication.getDetails();
+                    return meetRepository.findById(new ObjectId(id))
+                            .flatMap(meet -> {
+                                meet.getParticipants().stream()
+                                        .filter(assistant -> assistant.getUserId()
+                                                .equals(user.getId())).findFirst().get().assist();
+                                return meetRepository.save(meet);
+                            }).flatMap((meet) -> Mono.empty());
+                });
+    }
+
     private void validate(Meet meet) {
         if (StringUtils.isEmpty(meet.getTitle()) || meet.getDate() == null || meet.getLocation() == null || LocalDateTime.now().compareTo(meet.getDate()) > 0) {
             throw new IllegalArgumentException();
