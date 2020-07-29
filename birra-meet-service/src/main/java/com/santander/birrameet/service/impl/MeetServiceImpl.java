@@ -5,6 +5,8 @@ import com.santander.birrameet.connectors.model.openWeather.Root;
 import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.dto.MeetDto;
 import com.santander.birrameet.exceptions.IntegrationError;
+import com.santander.birrameet.exceptions.InvalidCheckinException;
+import com.santander.birrameet.exceptions.InvalidEnrollException;
 import com.santander.birrameet.repository.MeetRepository;
 import com.santander.birrameet.repository.UserRepository;
 import com.santander.birrameet.resolver.ProvisionResolver;
@@ -42,7 +44,6 @@ public class MeetServiceImpl implements MeetService {
         return meetRepository.findById(new ObjectId(id)).flatMap(meet -> ReactiveSecurityContextHolder
                 .getContext().flatMap(securityContext -> createMeetDto(meet, securityContext))
                 .switchIfEmpty(createMeetDto(meet, null)))
-                .onErrorMap(e -> new IntegrationError())
                 .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
 
@@ -52,10 +53,13 @@ public class MeetServiceImpl implements MeetService {
         validate(meet);
         return ReactiveSecurityContextHolder
                 .getContext().map(SecurityContext::getAuthentication)
-                .flatMap(authentication -> {
-                    User user = (User) authentication.getDetails();
-                    meet.withCreator(user.getId());
-                    return meetRepository.insert(meet).flatMap(createdMeet -> createMeetWithBeerBoxDto(meet, null, null));
+                .map(Authentication::getDetails)
+                .cast(User.class)
+                .map(User::getId)
+                .flatMap(userId -> {
+                    meet.withCreator(userId);
+                    return meetRepository.insert(meet).flatMap(createdMeet -> createMeetWithBeerBoxDto(meet, null,
+                            null));
                 });
     }
 
@@ -63,29 +67,35 @@ public class MeetServiceImpl implements MeetService {
     public Mono<MeetDto> enroll(String id) {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
-                .flatMap(authentication -> {
-                    User user = (User) authentication.getDetails();
-                    return meetRepository.findById(new ObjectId(id)).flatMap(meet -> {
-                        meet.addParticipant(user.getId());
-                        return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
-                                .flatMap(context -> createMeetDto(updated, context)));
-                    });
-                }).onErrorMap(e -> new IntegrationError())
-                .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
+                .map(Authentication::getDetails)
+                .cast(User.class)
+                .map(User::getId)
+                .flatMap(userId -> meetRepository.findById(new ObjectId(id)).flatMap(meet -> {
+                    if (LocalDateTime.now().isAfter(meet.getDate())) {
+                        throw new InvalidEnrollException();
+                    }
+                    meet.addParticipant(userId);
+                    return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
+                            .flatMap(context -> createMeetDto(updated, context)));
+                })
+                        .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException()))));
     }
 
     @Override
     public Mono<MeetDto> checkin(String id) {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
-                .flatMap(authentication -> {
-                    User user = (User) authentication.getDetails();
-                    return meetRepository.findById(new ObjectId(id)).flatMap(meet -> {
-                        meet.getParticipants().stream().filter(assistant -> assistant.getUserId().equals(user.getId())).findFirst().get().assist();
-                        return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
-                                .flatMap(context -> createMeetDto(updated, context)));
-                    });
-                }).onErrorMap(e -> new IntegrationError())
+                .map(Authentication::getDetails)
+                .cast(User.class)
+                .map(User::getId)
+                .flatMap(userId -> meetRepository.findById(new ObjectId(id)).flatMap(meet -> {
+                    if (LocalDateTime.now().isBefore(meet.getDate())) {
+                        throw new InvalidCheckinException();
+                    }
+                    meet.getParticipants().stream().filter(assistant -> assistant.getUserId().equals(userId)).findFirst().get().assist();
+                    return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
+                            .flatMap(context -> createMeetDto(updated, context)));
+                }))
                 .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
 
@@ -99,7 +109,7 @@ public class MeetServiceImpl implements MeetService {
         Authentication authentication = Optional.ofNullable(securityContext).map(SecurityContext::getAuthentication).orElse(null);
         Long boxes = null;
         Double temperature = null;
-        if (LocalDateTime.now().compareTo(meet.getDate()) <= 0 && LocalDateTime.now().plusMonths(1).compareTo(meet.getDate()) >= 1) {
+        if (LocalDateTime.now().isBefore(meet.getDate()) && LocalDateTime.now().plusMonths(1).isAfter(meet.getDate())) {
             temperature = getTemperature(meet);
             if (Objects.nonNull(authentication) && authentication.getAuthorities().stream().map(auth -> (SimpleGrantedAuthority) auth).map(SimpleGrantedAuthority::getAuthority)
                     .anyMatch(auth -> auth.equals(Role.ROLE_ADMIN.name()))) {
@@ -116,8 +126,13 @@ public class MeetServiceImpl implements MeetService {
     }
 
     private double getTemperature(Meet meet) {
-        Root root = openWeatherClient.getForecastForThirtyDays(meet.getLocation().getLongitude(), meet.getLocation().getLatitude());
-        return root.getList().stream().filter(whetherList -> LocalDate.ofEpochDay(whetherList.getDt() / 86400).equals(meet.getDate().toLocalDate()))
-                .findFirst().get().getTemp().getMax();
+        try {
+            Root root = openWeatherClient.getForecastForThirtyDays(meet.getLocation().getLongitude(), meet.getLocation().getLatitude());
+            return root.getList().stream().filter(whetherList -> LocalDate.ofEpochDay(whetherList.getDt() / 86400).equals(meet.getDate().toLocalDate()))
+                    .findFirst().get().getTemp().getMax();
+        } catch (Exception e) {
+            throw new IntegrationError();
+        }
+
     }
 }

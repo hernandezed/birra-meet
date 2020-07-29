@@ -29,6 +29,7 @@ public class ITMeetControllerGetMeet extends BirraMeetApplicationTests {
 
     private Meet meet;
     private Meet meetOpenWeatherApiError;
+    private Meet meetWithDistantDate;
 
     @BeforeAll
     void beforeAll() {
@@ -46,6 +47,7 @@ public class ITMeetControllerGetMeet extends BirraMeetApplicationTests {
         Set<Assistant> participants = Set.copyOf(Objects.requireNonNull(mongoTemplate.insertAll(springfield).map(User::getId).map((id) -> new Assistant(id, false)).collect(Collectors.toList()).block()));
         this.meet = mongoTemplate.insert(new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-50d, 40d))).block();
         this.meetOpenWeatherApiError = mongoTemplate.insert(new Meet(null, "Veamos Jamas Termina", savedAdmin.getId(), participants, LocalDateTime.of(2020, 8, 4, 20, 00, 00, 00), new Location(-60d, 40d))).block();
+        meetWithDistantDate = mongoTemplate.insert(new Meet(null, "Docker", admin.getId(), null, LocalDateTime.now().plusMonths(10), new Location(-50d, 40d))).block();
     }
 
     @Test
@@ -110,6 +112,22 @@ public class ITMeetControllerGetMeet extends BirraMeetApplicationTests {
                 .expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
                 .expectBody()
                 .jsonPath("$.message").isEqualTo("We are experiencing some problems, please retry in a few minutes.");
+    }
+
+    @Test
+    void getMeet_withADistantDate_withAdminUser_returnMeetWithoutTemperatureAndBoxes() {
+        LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
+                .body(BodyInserters.fromValue(new LoginRequestDto("moe", "123456")))
+                .exchange().returnResult(LoginResponseDto.class)
+                .getResponseBody().blockLast();
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path("/meet/{id}")
+                .build(meetWithDistantDate.getId()))
+                .header("Authorization", "Bearer " + loginResponseDto.getToken())
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .expectBody().jsonPath("$.boxes").doesNotExist()
+                .jsonPath("$.temperature").doesNotExist()
+                .jsonPath("$.id").exists();
     }
 
 }

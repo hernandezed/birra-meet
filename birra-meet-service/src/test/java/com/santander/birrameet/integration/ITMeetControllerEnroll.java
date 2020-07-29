@@ -123,4 +123,45 @@ public class ITMeetControllerEnroll extends BirraMeetApplicationTests {
                 .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Test
+    void enroll_toFinishedMeet_throwError() {
+        LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
+                .body(BodyInserters.fromValue(new LoginRequestDto("user_comun", "123456")))
+                .exchange().returnResult(LoginResponseDto.class)
+                .getResponseBody().blockLast();
+
+        User user = mongoTemplate.find(Query.query(where("username").is("moe")), User.class).blockFirst();
+
+        Meet meet = mongoTemplate.insert(new Meet(null, "BirraJs", user.getId(), null, LocalDateTime.now().minusDays(3), new Location(-50d, 40d))).block();
+
+        webTestClient.patch()
+                .uri(uriBuilder -> uriBuilder.path("/meet/{id}/enroll")
+                        .build(meet.getId()))
+                .header("Authorization", "Bearer " + loginResponseDto.getToken())
+                .exchange()
+                .expectStatus()
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+
+    @Test
+    void enroll_toOngoingMeet_throwError() {
+        LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
+                .body(BodyInserters.fromValue(new LoginRequestDto("user_comun", "123456")))
+                .exchange().returnResult(LoginResponseDto.class)
+                .getResponseBody().blockLast();
+
+        User user = mongoTemplate.find(Query.query(where("username").is("moe")), User.class).blockFirst();
+
+        Meet meet = mongoTemplate.insert(new Meet(null, "BirraJs", user.getId(), null, LocalDateTime.now(), new Location(-50d, 40d))).block();
+
+        webTestClient.patch()
+                .uri(uriBuilder -> uriBuilder.path("/meet/{id}/enroll")
+                        .build(meet.getId()))
+                .header("Authorization", "Bearer " + loginResponseDto.getToken())
+                .exchange()
+                .expectStatus()
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
 }

@@ -11,7 +11,6 @@ import com.santander.birrameet.security.model.User;
 import org.assertj.core.util.Sets;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -52,7 +51,7 @@ public class ITMeetControllerCheckin extends BirraMeetApplicationTests {
     @Test
     void checkIn_withLoggedUser_withValidMeet_userEnrolled_mustSetTrueToAssistance() {
         Meet meet = mongoTemplate.insert(new Meet(null, "DDD", admin.getId(), assistants,
-                LocalDate.now().plusMonths(5).atStartOfDay(), new Location(-50d, 40d))).block();
+                LocalDate.now().minusMonths(5).atStartOfDay(), new Location(-50d, 40d))).block();
 
         LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
                 .body(BodyInserters.fromValue(new LoginRequestDto("SpringfieldCitizen10", "123456")))
@@ -74,7 +73,7 @@ public class ITMeetControllerCheckin extends BirraMeetApplicationTests {
         assistantsToMeet.add(new Assistant(admin.getId(), false));
 
         Meet meet = mongoTemplate.insert(new Meet(null, "DDD2", admin.getId(), assistantsToMeet,
-                LocalDate.now().plusMonths(6).atStartOfDay(), new Location(-50d, 40d))).block();
+                LocalDate.now().minusMonths(6).atStartOfDay(), new Location(-50d, 40d))).block();
 
         LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
                 .body(BodyInserters.fromValue(new LoginRequestDto("moe", "123456")))
@@ -108,6 +107,28 @@ public class ITMeetControllerCheckin extends BirraMeetApplicationTests {
                 .header("Authorization", "Bearer " + loginResponseDto.getToken())
                 .exchange()
                 .expectStatus().isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void checkIn_beforeMeet_throwError() {
+        Set<Assistant> assistantsToMeet = Sets.newHashSet(assistants);
+        assistantsToMeet.add(new Assistant(admin.getId(), false));
+
+        Meet meet = mongoTemplate.insert(new Meet(null, "DDD2", admin.getId(), assistantsToMeet,
+                LocalDate.now().plusMonths(6).atStartOfDay(), new Location(-50d, 40d))).block();
+
+        LoginResponseDto loginResponseDto = webTestClient.post().uri("/auth/login")
+                .body(BodyInserters.fromValue(new LoginRequestDto("moe", "123456")))
+                .exchange().returnResult(LoginResponseDto.class)
+                .getResponseBody().blockLast();
+        webTestClient.patch().uri("/meet/" + meet.getId().toString() + "/checkin")
+                .header("Authorization", "Bearer " + loginResponseDto.getToken())
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.BAD_REQUEST);
+
+        Meet meetAfterCheckIn = mongoTemplate.findById(meet.getId(), Meet.class).block();
+
+        assertThat(meetAfterCheckIn.getParticipants().stream().filter(Assistant::isAssist)).hasSize(0);
     }
 
 

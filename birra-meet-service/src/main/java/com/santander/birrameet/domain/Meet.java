@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class Meet {
     private Set<Assistant> participants;
     private LocalDateTime date;
     private Location location;
+    private Double temperature;
 
     public Meet(ObjectId id, String title, ObjectId creator, Set<Assistant> participants, LocalDateTime date, Location location) {
         this.id = id;
@@ -41,4 +43,11 @@ public class Meet {
     public void withCreator(ObjectId creatorId) {
         creator = creatorId;
     }
+
+    public void withTemperature(Double temperature) {
+        if (LocalDate.now().equals(date.toLocalDate())) {
+            this.temperature = temperature;
+        }
+    }
+
 }
