@@ -5,6 +5,7 @@ spring:
   cache:
     redis:
       time-to-live: 3600000
+    cache-names: open-weather-get-forecast-for-thirty-days
 birra-meet:
   jjwt:
     secret: ksJiIl![s*bkPZ$r:ZyLv!Xp(8M~4C$_ck"w6sNRb'4WYB"K#Y2aM<Qr-ogl1/p

@@ -1,6 +1,5 @@
 package com.santander.birrameet.service.impl;
 
-import com.santander.birrameet.connectors.OpenWeatherClient;
 import com.santander.birrameet.connectors.model.openWeather.Root;
 import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.dto.MeetDto;
@@ -13,6 +12,7 @@ import com.santander.birrameet.resolver.ProvisionResolver;
 import com.santander.birrameet.security.model.Role;
 import com.santander.birrameet.security.model.User;
 import com.santander.birrameet.service.MeetService;
+import com.santander.birrameet.service.OpenWeatherService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,7 +27,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,7 +37,7 @@ public class MeetServiceImpl implements MeetService {
 
     private final MeetRepository meetRepository;
     private final ProvisionResolver provisionResolver;
-    private final OpenWeatherClient openWeatherClient;
+    private final OpenWeatherService openWeatherService;
     private final UserRepository userRepository;
 
     @Override
@@ -139,7 +138,7 @@ public class MeetServiceImpl implements MeetService {
     private double getTemperature(Meet meet) {
         if (meet.getTemperature() == null) {
             try {
-                Root root = openWeatherClient.getForecastForThirtyDays(meet.getLocation().getLongitude(), meet.getLocation().getLatitude());
+                Root root = openWeatherService.getForecastForThirtyDays(meet.getLocation().getLongitude(), meet.getLocation().getLatitude());
                 return root.getList().stream().filter(whetherList -> LocalDate.ofEpochDay(whetherList.getDt() / 86400).equals(meet.getDate().toLocalDate()))
                         .findFirst().get().getTemp().getMax();
             } catch (Exception e) {
