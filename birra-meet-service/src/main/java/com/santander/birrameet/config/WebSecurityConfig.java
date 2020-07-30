@@ -44,6 +44,14 @@ public class WebSecurityConfig {
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
                 .pathMatchers("/auth/login").permitAll()
                 .pathMatchers("/meet/{id}").permitAll()
+                .pathMatchers("swagger-ui").permitAll()
+                .pathMatchers("/v2/api-docs",
+                        "/configuration/ui",
+                        "/swagger-resources/**",
+                        "/configuration/security",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/webjars/**").permitAll()
                 .anyExchange().authenticated()
                 .and().build();
     }

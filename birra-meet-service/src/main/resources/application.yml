@@ -17,3 +17,7 @@ birra-meet:
   jjwt:
     secret: ksJiIl![s*bkPZ$r:ZyLv!Xp(8M~4C$_ck"w6sNRb'4WYB"K#Y2aM<Qr-ogl1/p
     expiration: 28800
+clients:
+  open-weather:
+    api-key: b1b15e88fa797225412429c1c50c122a1
+    base-url: pro.openweathermap.org/data/2.5

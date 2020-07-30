@@ -67,7 +67,11 @@
                 <artifactId>junit-jupiter</artifactId>
                 <version>1.14.3</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-webflux-ui</artifactId>
+                <version>1.4.3</version>
+            </dependency>
             <dependency>
                 <groupId>net.minidev</groupId>
                 <artifactId>asm</artifactId>

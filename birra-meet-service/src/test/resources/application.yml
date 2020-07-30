@@ -23,8 +23,6 @@ birra-meet:
 clients:
   open-weather:
     api-key: "apikey-123"
-logging:
-  level:
-    org:
-      springframework:
-        web: TRACE
+springdoc:
+  swagger-ui:
+    path: /api-docs
