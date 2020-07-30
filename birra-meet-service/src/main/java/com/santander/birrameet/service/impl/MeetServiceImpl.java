@@ -22,10 +22,12 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -99,6 +101,15 @@ public class MeetServiceImpl implements MeetService {
                 .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
 
+    @Override
+    public Flux<MeetDto> updateTemperature() {
+        return meetRepository.findByDateGreaterThanEqualAndAndDateLessThan(LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay())
+                .map(meet -> {
+                    meet.withTemperature(getTemperature(meet));
+                    return meetRepository.save(meet);
+                }).concatMap(meetMono -> meetMono).flatMap(meet -> createMeetDto(meet, null));
+    }
+
     private void validate(Meet meet) {
         if (StringUtils.isEmpty(meet.getTitle()) || meet.getDate() == null || meet.getLocation() == null || LocalDateTime.now().compareTo(meet.getDate()) > 0) {
             throw new IllegalArgumentException();
@@ -126,13 +137,15 @@ public class MeetServiceImpl implements MeetService {
     }
 
     private double getTemperature(Meet meet) {
-        try {
-            Root root = openWeatherClient.getForecastForThirtyDays(meet.getLocation().getLongitude(), meet.getLocation().getLatitude());
-            return root.getList().stream().filter(whetherList -> LocalDate.ofEpochDay(whetherList.getDt() / 86400).equals(meet.getDate().toLocalDate()))
-                    .findFirst().get().getTemp().getMax();
-        } catch (Exception e) {
-            throw new IntegrationError();
+        if (meet.getTemperature() == null) {
+            try {
+                Root root = openWeatherClient.getForecastForThirtyDays(meet.getLocation().getLongitude(), meet.getLocation().getLatitude());
+                return root.getList().stream().filter(whetherList -> LocalDate.ofEpochDay(whetherList.getDt() / 86400).equals(meet.getDate().toLocalDate()))
+                        .findFirst().get().getTemp().getMax();
+            } catch (Exception e) {
+                throw new IntegrationError();
+            }
         }
-
+        return meet.getTemperature();
     }
 }
