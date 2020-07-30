@@ -26,15 +26,11 @@ public class WebSecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .exceptionHandling()
-                .authenticationEntryPoint((swe, e) -> {
-                    return Mono.fromRunnable(() -> {
-                        swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                    });
-                }).accessDeniedHandler((swe, e) -> {
-                    return Mono.fromRunnable(() -> {
-                        swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                    });
-                }).and()
+                .authenticationEntryPoint((swe, e) -> Mono.fromRunnable(() -> {
+                    swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                })).accessDeniedHandler((swe, e) -> Mono.fromRunnable(() -> {
+                    swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                })).and()
                 .csrf().disable()
                 .formLogin().disable()
                 .httpBasic().disable()
