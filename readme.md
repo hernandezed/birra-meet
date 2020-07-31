@@ -2,6 +2,8 @@
 
 Para iniciar la aplicacion primero debemos correr docker-compose con el archivo provisto en el repositorio, el cual configurara tanto el mongo, utilizado para la persistencia, como el redis, para el cache.
 
+Para correr los test, se necesita tener Docker instalado previamente (https://www.testcontainers.org/supported_docker_environment/)
+
 La documentacion de la api se encuentra en: http://localhost:8080/swagger-ui.html
 
 Esquema de CI/CD
