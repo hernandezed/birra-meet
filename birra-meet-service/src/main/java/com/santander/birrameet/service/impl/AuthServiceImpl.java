@@ -1,6 +1,5 @@
 package com.santander.birrameet.service.impl;
 
-import com.santander.birrameet.exceptions.DuplicateUsernameException;
 import com.santander.birrameet.exceptions.InvalidUsernameOrPasswordException;
 import com.santander.birrameet.security.model.Role;
 import com.santander.birrameet.security.model.User;
@@ -37,10 +36,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Mono<Void> signUp(String username, String password) {
+    public Mono<User> signUp(String username, String password) {
         User newUser = new User(null, username, passwordEncoder.encode(password), true, List.of(Role.ROLE_USER));
-        return userService.insert(newUser)
-                .flatMap(user -> Mono.empty());
+        return userService.insert(newUser);
 
     }
 }

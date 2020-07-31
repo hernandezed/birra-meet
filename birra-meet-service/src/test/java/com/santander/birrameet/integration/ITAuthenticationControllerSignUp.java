@@ -28,21 +28,4 @@ public class ITAuthenticationControllerSignUp extends BirraMeetApplicationTests 
         assertThat(user.getUsername()).isEqualTo(signUpRequestDto.getUsername());
         assertThat(passwordEncoder.matches(signUpRequestDto.getPassword(), user.getPassword())).isTrue();
     }
-
-    @Test
-    void signUp_withDuplicateUsername_returnConflict() {
-        SignUpRequestDto signUpRequestDto = new SignUpRequestDto("other-user", "123456");
-
-        webTestClient.post()
-                .uri("/auth/sign-up")
-                .body(BodyInserters.fromValue(signUpRequestDto))
-                .exchange();
-
-        webTestClient.post()
-                .uri("/auth/sign-up")
-                .body(BodyInserters.fromValue(signUpRequestDto))
-                .exchange()
-                .expectStatus().isEqualTo(HttpStatus.CONFLICT);
-
-    }
 }

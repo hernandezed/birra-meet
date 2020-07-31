@@ -5,6 +5,7 @@ import com.santander.birrameet.request.LoginRequestDto;
 import com.santander.birrameet.request.SignUpRequestDto;
 import com.santander.birrameet.response.ApiError;
 import com.santander.birrameet.response.LoginResponseDto;
+import com.santander.birrameet.security.model.User;
 import com.santander.birrameet.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +28,10 @@ public class AuthorizationController {
                 .map(LoginResponseDto::new);
     }
 
-    @PostMapping("/sign-up")
     @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/sign-up")
     @Tag(name = "sign-up", description = "Allows the user to create credentials in app")
-    public Mono<Void> signUp(@RequestBody SignUpRequestDto request) {
+    public Mono<User> signUp(@RequestBody SignUpRequestDto request) {
         return authService.signUp(request.getUsername(), request.getPassword());
     }
 
