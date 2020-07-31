@@ -1,6 +1,8 @@
 package com.santander.birrameet.service.impl;
 
+import com.pusher.rest.Pusher;
 import com.santander.birrameet.connectors.model.openWeather.Root;
+import com.santander.birrameet.connectors.model.pusher.Notification;
 import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.dto.MeetDto;
 import com.santander.birrameet.exceptions.IntegrationError;
@@ -100,13 +102,22 @@ public class MeetServiceImpl implements MeetService {
                 .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
 
+    private final Pusher pusher;
+
     @Override
     public Flux<MeetDto> updateTemperature() {
         return meetRepository.findByDateGreaterThanEqualAndAndDateLessThan(LocalDate.now().atStartOfDay(), LocalDate.now().plusDays(1).atStartOfDay())
                 .map(meet -> {
                     meet.withTemperature(getTemperature(meet));
                     return meetRepository.save(meet);
-                }).concatMap(meetMono -> meetMono).flatMap(meet -> createMeetDto(meet, null));
+                }).concatMap(meetMono -> meetMono)
+                .map(meet -> {
+                    meet.getParticipants().forEach(assistant -> pusher.trigger(assistant.getUserId().toString(), "today-meet", new Notification("")));
+                    return meet;
+                })
+
+
+                .flatMap(meet -> createMeetDto(meet, null));
     }
 
     private void validate(Meet meet) {

@@ -1,6 +1,7 @@
 package com.santander.birrameet;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.pusher.rest.Pusher;
 import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.extension.GlobalTestContainersExtension;
 import com.santander.birrameet.security.model.User;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -39,6 +41,8 @@ public abstract class BirraMeetApplicationTests {
     protected ReactiveMongoTemplate mongoTemplate;
     @Autowired
     protected PasswordEncoder passwordEncoder;
+    @MockBean
+    private Pusher pusher;
 
     public static WireMockServer wireMockServer = new WireMockServer(options().dynamicPort());
 

@@ -26,3 +26,9 @@ clients:
 springdoc:
   swagger-ui:
     path: /api-docs
+pusher:
+  app-id: 1047967
+  key: cf2ac28051357688a5e9
+  secret: d8407a32282df345f6b4
+  cluster: us2
+  encrypted: true

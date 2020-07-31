@@ -1,11 +1,13 @@
 package com.santander.birrameet.integration;
 
 import com.santander.birrameet.BirraMeetApplicationTests;
+import com.santander.birrameet.domain.Assistant;
 import com.santander.birrameet.domain.Location;
 import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.scheduler.GetFinalTemperatureForMeetScheduler;
 import com.santander.birrameet.security.model.Role;
 import com.santander.birrameet.security.model.User;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -13,6 +15,7 @@ import org.springframework.http.MediaType;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -32,8 +35,10 @@ public class ITGetFinalTemperatureForMeetScheduler extends BirraMeetApplicationT
                         .withBodyFile("response/openWeather_-50_40.json")));
 
         User admin = mongoTemplate.insert(new User(null, "moe", passwordEncoder.encode("123456"), true, List.of(Role.ROLE_ADMIN))).block();
-        mongoTemplate.insertAll(IntStream.range(0, 36).mapToObj(num -> new Meet(null, "Meet " + num, admin.getId(), null, LocalDate.now().atStartOfDay().plusHours(num), new Location(-50d, 40d)))
+        mongoTemplate.insertAll(IntStream.range(0, 36).mapToObj(num -> new Meet(null, "Meet " + num, admin.getId(), Set.of(new Assistant(new ObjectId(), false)), LocalDate.now().atStartOfDay().plusHours(num), new Location(-50d, 40d)))
                 .collect(Collectors.toList())).collectList().block();
+
+
         scheduler.updateFinalTemperature();
 
         List<Meet> meets = mongoTemplate.findAll(Meet.class).collectList().block();

@@ -21,3 +21,9 @@ clients:
   open-weather:
     api-key: b1b15e88fa797225412429c1c50c122a1
     base-url: pro.openweathermap.org/data/2.5
+pusher:
+  app-id: 1047967
+  key: cf2ac28051357688a5e9
+  secret: d8407a32282df345f6b4
+  cluster: us2
+  encrypted: true
