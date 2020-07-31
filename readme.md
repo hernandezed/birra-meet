@@ -19,3 +19,6 @@ Esquema de CI/CD
     * close-mr: Cierra el merge request, mergeando el branch a master
     * update-code-quality: Actualiza los reportes de SonarQube, con la nueva informacion.
     * perform-release: Publica en el repositorio de artifacts el nuevo release del aplicativo
+    
+Por hacer: 
+1. Agregar una segunda api de clima y configurar Spring-Cloud-Circuit-Breaker, para los casos de OpenWeather no responda

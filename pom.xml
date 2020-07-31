@@ -5,6 +5,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>birra-meet-contract</module>
+        <module>birra-meet-service</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -14,7 +15,7 @@
     </parent>
     <groupId>com.santander</groupId>
     <artifactId>birra-meet</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>birra-meet</name>
     <description>Demo project for Spring Boot</description>
 
@@ -73,11 +74,6 @@
                 <version>1.4.3</version>
             </dependency>
             <dependency>
-                <groupId>com.pusher</groupId>
-                <artifactId>pusher-http-java</artifactId>
-                <version>1.0.0</version>
-            </dependency>
-            <dependency>
                 <groupId>net.minidev</groupId>
                 <artifactId>asm</artifactId>
                 <version>1.0.2</version>
@@ -97,6 +93,11 @@
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
                 <version>2.11.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pusher</groupId>
+                <artifactId>pusher-http-java</artifactId>
+                <version>1.0.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
