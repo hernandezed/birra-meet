@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
-@ConfigurationProperties(prefix = "birra-meet.provision-strategy")
+@ConfigurationProperties(prefix = "birra-meet.provision-resolver")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

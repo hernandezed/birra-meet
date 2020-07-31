@@ -6,6 +6,9 @@ Para correr los test, se necesita tener Docker instalado previamente (https://ww
 
 La documentacion de la api se encuentra en: http://localhost:8080/swagger-ui.html
 
+Customizacion del resolver:
+    * El resolver permite configurar los parametros por los cuales se calculara la cantidad de cajas a comprar. Esto se puede hacer bajo la property birra-meet.provision-resolver y sus hijas.
+
 Esquema de CI/CD
 1. Jenkins Pipeline disparado por los commits al repositorio. El mismo debera correr los test del aplicativo, y fallar si la cobertura del codigo baja del 90%.
 2. Uso de SonarQube para el analisis de los reportes generados por el aplicativo.

@@ -17,7 +17,7 @@ birra-meet:
   jjwt:
     secret: ksJiIl![s*bkPZ$r:ZyLv!Xp(8M~4C$_ck"w6sNRb'4WYB"K#Y2aM<Qr-ogl1/p
     expiration: 28800
-  provision-strategy:
+  provision-resolver:
     birras-por-caja: 6
     condiciones:
       - hasta: 19
