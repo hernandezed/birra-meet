@@ -11,11 +11,7 @@ import org.springframework.context.annotation.Configuration;
 public class FeignResponseDecoderConfig {
     @Bean
     public Decoder feignDecoder() {
-
-        ObjectFactory<HttpMessageConverters> messageConverters = () -> {
-            HttpMessageConverters converters = new HttpMessageConverters();
-            return converters;
-        };
+        ObjectFactory<HttpMessageConverters> messageConverters = HttpMessageConverters::new;
         return new SpringDecoder(messageConverters);
     }
 }
