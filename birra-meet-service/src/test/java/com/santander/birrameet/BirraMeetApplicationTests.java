@@ -42,7 +42,7 @@ public abstract class BirraMeetApplicationTests {
     @Autowired
     protected PasswordEncoder passwordEncoder;
     @MockBean
-    private Pusher pusher;
+    protected Pusher pusher;
 
     public static WireMockServer wireMockServer = new WireMockServer(options().dynamicPort());
 

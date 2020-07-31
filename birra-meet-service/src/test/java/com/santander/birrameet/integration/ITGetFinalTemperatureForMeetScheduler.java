@@ -9,6 +9,7 @@ import com.santander.birrameet.security.model.Role;
 import com.santander.birrameet.security.model.User;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -21,6 +22,7 @@ import java.util.stream.IntStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
 
 public class ITGetFinalTemperatureForMeetScheduler extends BirraMeetApplicationTests {
 
@@ -43,6 +45,7 @@ public class ITGetFinalTemperatureForMeetScheduler extends BirraMeetApplicationT
 
         List<Meet> meets = mongoTemplate.findAll(Meet.class).collectList().block();
         assertThat(meets.stream().map(Meet::getTemperature).filter(Objects::nonNull)).hasSize(24);
+        Mockito.verify(pusher, times(24)).trigger(Mockito.anyString(), Mockito.anyString(), Mockito.any());
     }
 
 

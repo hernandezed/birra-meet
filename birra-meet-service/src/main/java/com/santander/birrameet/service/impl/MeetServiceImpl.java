@@ -37,10 +37,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MeetServiceImpl implements MeetService {
 
+    private static final String TODAY_MEET_EVENT = "today-meet";
+    private static final String TODAY_MEET_EVENT_MESSAGE = "%s is today!";
+    private static final String NEW_PARTICIPANT_EVENT = "new-participant";
+    private static final String NEW_PARTICIPANT_EVENT_MESSAGE = "New participant in %s!.";
     private final MeetRepository meetRepository;
     private final ProvisionResolver provisionResolver;
     private final OpenWeatherService openWeatherService;
     private final UserRepository userRepository;
+    private final Pusher pusher;
 
     @Override
     public Mono<MeetDto> findById(String id) {
@@ -73,14 +78,7 @@ public class MeetServiceImpl implements MeetService {
                 .map(Authentication::getDetails)
                 .cast(User.class)
                 .map(User::getId)
-                .flatMap(userId -> meetRepository.findById(new ObjectId(id)).flatMap(meet -> {
-                    if (LocalDateTime.now().isAfter(meet.getDate())) {
-                        throw new InvalidEnrollException();
-                    }
-                    meet.addParticipant(userId);
-                    return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
-                            .flatMap(context -> createMeetDto(updated, context)));
-                })
+                .flatMap(userId -> meetRepository.findById(new ObjectId(id)).flatMap(meet -> updateMeetAndNotify(userId, meet))
                         .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException()))));
     }
 
@@ -91,18 +89,9 @@ public class MeetServiceImpl implements MeetService {
                 .map(Authentication::getDetails)
                 .cast(User.class)
                 .map(User::getId)
-                .flatMap(userId -> meetRepository.findById(new ObjectId(id)).flatMap(meet -> {
-                    if (LocalDateTime.now().isBefore(meet.getDate())) {
-                        throw new InvalidCheckinException();
-                    }
-                    meet.getParticipants().stream().filter(assistant -> assistant.getUserId().equals(userId)).findFirst().get().assist();
-                    return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
-                            .flatMap(context -> createMeetDto(updated, context)));
-                }))
+                .flatMap(userId -> meetRepository.findById(new ObjectId(id)).flatMap(meet -> updateMeet(userId, meet)))
                 .switchIfEmpty(Mono.defer(() -> Mono.error(new NoSuchElementException())));
     }
-
-    private final Pusher pusher;
 
     @Override
     public Flux<MeetDto> updateTemperature() {
@@ -112,12 +101,9 @@ public class MeetServiceImpl implements MeetService {
                     return meetRepository.save(meet);
                 }).concatMap(meetMono -> meetMono)
                 .map(meet -> {
-                    meet.getParticipants().forEach(assistant -> pusher.trigger(assistant.getUserId().toString(), "today-meet", new Notification("")));
+                    meet.getParticipants().forEach(assistant -> pusher.trigger(assistant.getUserId().toString(), TODAY_MEET_EVENT, new Notification(String.format(TODAY_MEET_EVENT_MESSAGE, meet.getTitle()))));
                     return meet;
-                })
-
-
-                .flatMap(meet -> createMeetDto(meet, null));
+                }).flatMap(meet -> createMeetDto(meet, null));
     }
 
     private void validate(Meet meet) {
@@ -157,5 +143,26 @@ public class MeetServiceImpl implements MeetService {
             }
         }
         return meet.getTemperature();
+    }
+
+
+    private Mono<MeetDto> updateMeetAndNotify(ObjectId userId, Meet meet) {
+        if (LocalDateTime.now().isAfter(meet.getDate())) {
+            throw new InvalidEnrollException();
+        }
+        meet.addParticipant(userId);
+        Mono<MeetDto> monoMeet = meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
+                .flatMap(context -> createMeetDto(updated, context)));
+        pusher.trigger(meet.getCreator().toString(), NEW_PARTICIPANT_EVENT, new Notification(String.format(NEW_PARTICIPANT_EVENT_MESSAGE, meet.getTitle())));
+        return monoMeet;
+    }
+
+    private Mono<MeetDto> updateMeet(ObjectId userId, Meet meet) {
+        if (LocalDateTime.now().isBefore(meet.getDate())) {
+            throw new InvalidCheckinException();
+        }
+        meet.getParticipants().stream().filter(assistant -> assistant.getUserId().equals(userId)).findFirst().get().assist();
+        return meetRepository.save(meet).flatMap(updated -> ReactiveSecurityContextHolder.getContext()
+                .flatMap(context -> createMeetDto(updated, context)));
     }
 }
