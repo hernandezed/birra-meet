@@ -1,7 +1,7 @@
 package com.santander.birrameet.service.impl;
 
 import com.santander.birrameet.connectors.OpenWeatherClient;
-import com.santander.birrameet.connectors.model.openWeather.Root;
+import com.santander.birrameet.connectors.model.openWeather.OpenWeatherResponse;
 import com.santander.birrameet.service.OpenWeatherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -15,7 +15,7 @@ public class OpenWeatherServiceImpl implements OpenWeatherService {
 
     @Override
     @Cacheable("open-weather-get-forecast-for-thirty-days")
-    public Root getForecastForThirtyDays(Double lon, Double lat) {
+    public OpenWeatherResponse getForecastForThirtyDays(Double lon, Double lat) {
         return openWeatherClient.getForecastForThirtyDays(lon, lat);
     }
 }

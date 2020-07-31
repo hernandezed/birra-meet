@@ -1,7 +1,7 @@
 package com.santander.birrameet.connectors;
 
 import com.santander.birrameet.connectors.config.OpenWeatherConfiguration;
-import com.santander.birrameet.connectors.model.openWeather.Root;
+import com.santander.birrameet.connectors.model.openWeather.OpenWeatherResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,5 +10,5 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface OpenWeatherClient {
 
     @GetMapping(path = "/forecast/climate", produces = {"application/json"})
-    Root getForecastForThirtyDays(@RequestParam Double lon, @RequestParam Double lat);
+    OpenWeatherResponse getForecastForThirtyDays(@RequestParam Double lon, @RequestParam Double lat);
 }

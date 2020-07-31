@@ -1,7 +1,7 @@
 package com.santander.birrameet.service;
 
-import com.santander.birrameet.connectors.model.openWeather.Root;
+import com.santander.birrameet.connectors.model.openWeather.OpenWeatherResponse;
 
 public interface OpenWeatherService {
-    Root getForecastForThirtyDays(Double lon, Double lat);
+    OpenWeatherResponse getForecastForThirtyDays(Double lon, Double lat);
 }

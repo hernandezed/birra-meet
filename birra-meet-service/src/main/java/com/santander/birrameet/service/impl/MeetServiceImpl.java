@@ -1,7 +1,7 @@
 package com.santander.birrameet.service.impl;
 
 import com.pusher.rest.Pusher;
-import com.santander.birrameet.connectors.model.openWeather.Root;
+import com.santander.birrameet.connectors.model.openWeather.OpenWeatherResponse;
 import com.santander.birrameet.connectors.model.pusher.Notification;
 import com.santander.birrameet.domain.Meet;
 import com.santander.birrameet.dto.MeetDto;
@@ -41,6 +41,7 @@ public class MeetServiceImpl implements MeetService {
     private static final String TODAY_MEET_EVENT_MESSAGE = "%s is today!";
     private static final String NEW_PARTICIPANT_EVENT = "new-participant";
     private static final String NEW_PARTICIPANT_EVENT_MESSAGE = "New participant in %s!.";
+
     private final MeetRepository meetRepository;
     private final ProvisionResolver provisionResolver;
     private final OpenWeatherService openWeatherService;
@@ -135,8 +136,8 @@ public class MeetServiceImpl implements MeetService {
     private double getTemperature(Meet meet) {
         if (meet.getTemperature() == null) {
             try {
-                Root root = openWeatherService.getForecastForThirtyDays(meet.getLocation().getLongitude(), meet.getLocation().getLatitude());
-                return root.getList().stream().filter(whetherList -> LocalDate.ofEpochDay(whetherList.getDt() / 86400).equals(meet.getDate().toLocalDate()))
+                OpenWeatherResponse openWeatherResponse = openWeatherService.getForecastForThirtyDays(meet.getLocation().getLongitude(), meet.getLocation().getLatitude());
+                return openWeatherResponse.getList().stream().filter(whetherList -> LocalDate.ofEpochDay(whetherList.getDt() / 86400).equals(meet.getDate().toLocalDate()))
                         .findFirst().get().getTemp().getMax();
             } catch (Exception e) {
                 throw new IntegrationError();
