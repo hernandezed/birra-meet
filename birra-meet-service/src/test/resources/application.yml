@@ -2,6 +2,9 @@ server:
   servlet:
     context-path: /birra-meet
 spring:
+  data:
+    mongodb:
+      auto-index-creation: true
   cache:
     redis:
       time-to-live: 3600000

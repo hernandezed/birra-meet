@@ -6,4 +6,6 @@ import reactor.core.publisher.Mono;
 public interface UserService {
 
     Mono<User> findByUsername(String username);
+
+    Mono<User> insert(User user);
 }

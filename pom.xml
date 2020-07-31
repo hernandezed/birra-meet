@@ -73,6 +73,11 @@
                 <version>1.4.3</version>
             </dependency>
             <dependency>
+                <groupId>com.pusher</groupId>
+                <artifactId>pusher-http-java</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+            <dependency>
                 <groupId>net.minidev</groupId>
                 <artifactId>asm</artifactId>
                 <version>1.0.2</version>

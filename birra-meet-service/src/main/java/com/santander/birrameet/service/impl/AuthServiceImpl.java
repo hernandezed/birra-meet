@@ -1,6 +1,9 @@
 package com.santander.birrameet.service.impl;
 
+import com.santander.birrameet.exceptions.DuplicateUsernameException;
 import com.santander.birrameet.exceptions.InvalidUsernameOrPasswordException;
+import com.santander.birrameet.security.model.Role;
+import com.santander.birrameet.security.model.User;
 import com.santander.birrameet.security.utils.JWTUtils;
 import com.santander.birrameet.service.AuthService;
 import com.santander.birrameet.service.UserService;
@@ -10,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -30,5 +34,13 @@ public class AuthServiceImpl implements AuthService {
                 throw new InvalidUsernameOrPasswordException();
             }
         });
+    }
+
+    @Override
+    public Mono<Void> signUp(String username, String password) {
+        User newUser = new User(null, username, passwordEncoder.encode(password), true, List.of(Role.ROLE_USER));
+        return userService.insert(newUser)
+                .flatMap(user -> Mono.empty());
+
     }
 }

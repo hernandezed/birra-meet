@@ -38,7 +38,7 @@ public class WebSecurityConfig {
                 .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                .pathMatchers("/auth/login").permitAll()
+                .pathMatchers("/auth/**").permitAll()
                 .pathMatchers("/meet/{id}").permitAll()
                 .pathMatchers("swagger-ui").permitAll()
                 .pathMatchers("/v2/api-docs",
