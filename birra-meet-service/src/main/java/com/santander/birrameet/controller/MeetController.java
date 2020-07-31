@@ -11,6 +11,7 @@ import com.santander.birrameet.request.MeetCreateRequestDto;
 import com.santander.birrameet.response.ApiError;
 import com.santander.birrameet.response.MeetResponseDto;
 import com.santander.birrameet.service.MeetService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,22 +29,26 @@ public class MeetController {
     private final ObjectMapper objectMapper;
 
     @GetMapping("/{id}")
+    @Tag(name = "find", description = "Returns a meet given an id. If the user has the Admin role, it also returns the number of beer boxes to buy")
     public Mono<MeetResponseDto> find(@PathVariable String id) {
         return meetService.findById(id).map(meet -> objectMapper.convertValue(meet, MeetResponseDto.class));
     }
 
     @PostMapping("")
+    @Tag(name = "create", description = "Create a new meet. Only users with role admin can use this endpoint.")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<MeetResponseDto> create(@RequestBody MeetCreateRequestDto meetCreateRequestDto) {
         return meetService.create(objectMapper.convertValue(meetCreateRequestDto, Meet.class)).map(meet -> objectMapper.convertValue(meet, MeetResponseDto.class));
     }
 
     @PatchMapping("/{id}/enroll")
+    @Tag(name = "enroll", description = "Enroll a user in an existing meet")
     public Mono<MeetResponseDto> enroll(@PathVariable String id) {
         return meetService.enroll(id).map(meet -> objectMapper.convertValue(meet, MeetResponseDto.class));
     }
 
     @PatchMapping("/{id}/checkin")
+    @Tag(name = "checkin", description = "Allows a user to indicate if they finally attended a meeting")
     public Mono<MeetDto> checkin(@PathVariable String id) {
         return meetService.checkin(id);
     }
